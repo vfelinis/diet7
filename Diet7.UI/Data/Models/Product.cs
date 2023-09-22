@@ -10,6 +10,9 @@
         public bool IsActive { get; set; }
         public DateTimeOffset DateCreated { get; set; }
         public DateTimeOffset DateUpdated { get; set; }
-        public List<ExcludeProduct> ExcludeProducts { get; set; }
+        public List<ExcludeProduct> ExcludeProducts { get; set; } = new();
+        public List<RecipeItem> RecipeItems { get; set; } = new();
+        public List<ProhibitedProduct> ProhibitedProducts { get; set; } = new();
+        public List<AllowedProduct> AllowedProducts { get; set; } = new();
     }
 }

@@ -7,6 +7,7 @@
         public bool IsActive { get; set; }
         public DateTimeOffset DateCreated { get; set; }
         public DateTimeOffset DateUpdated{ get; set; }
-        public List<ExcludeProduct> ExcludeProducts { get; set; }
+        public List<ExcludeProduct> ExcludeProducts { get; set; } = new();
+        public List<Menu> Menus { get; set; } = new();
     }
 }
