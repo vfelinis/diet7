@@ -1,6 +1,8 @@
+using Diet7.UI.Constants;
 using Diet7.UI.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,11 @@ else
 
 ///app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(AppConstants.ImageBasePath, AppConstants.ImageBaseFolder)),
+    RequestPath = $"/{AppConstants.ImageBaseFolder}"
+});
 
 app.UseRouting();
 

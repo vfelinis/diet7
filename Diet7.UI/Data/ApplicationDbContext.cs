@@ -83,11 +83,6 @@ namespace Diet7.UI.Data
             {
                 s.HasIndex(x => new { x.UserId, x.IllnessId }).IsUnique(true);
             });
-
-            modelBuilder.Entity<MenuItem>(s =>
-            {
-                s.HasIndex(x => new { x.MenuId, x.RecipeId }).IsUnique(true);
-            });
         }
     }
 }

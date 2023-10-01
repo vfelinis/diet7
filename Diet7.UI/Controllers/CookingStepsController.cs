@@ -2,12 +2,14 @@
 using Diet7.UI.Data;
 using Diet7.UI.Data.Models;
 using Diet7.UI.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Diet7.UI.Controllers
 {
+    [Authorize]
     public class CookingStepsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -75,7 +77,7 @@ namespace Diet7.UI.Controllers
                 if (model.Image != null)
                 {
                     cookingStep.Image = $"{cookingStep.Id}{System.IO.Path.GetExtension(model.Image.FileName)}";
-                    var path = System.IO.Path.Combine(_env.WebRootPath, AppConstants.ImageBaseFolder, AppConstants.CookingStepImageFolder, cookingStep.Image);
+                    var path = System.IO.Path.Combine(AppConstants.ImageBasePath, AppConstants.ImageBaseFolder, AppConstants.CookingStepImageFolder, cookingStep.Image);
                     using var stream = new System.IO.FileStream(path, FileMode.OpenOrCreate);
                     model.Image.CopyTo(stream);
 
@@ -138,7 +140,7 @@ namespace Diet7.UI.Controllers
                     else if (model.Image != null)
                     {
                         cookingStep.Image = $"{cookingStep.Id}{System.IO.Path.GetExtension(model.Image.FileName)}";
-                        var path = System.IO.Path.Combine(_env.WebRootPath, AppConstants.ImageBaseFolder, AppConstants.CookingStepImageFolder, cookingStep.Image);
+                        var path = System.IO.Path.Combine(AppConstants.ImageBasePath, AppConstants.ImageBaseFolder, AppConstants.CookingStepImageFolder, cookingStep.Image);
                         using var stream = new System.IO.FileStream(path, FileMode.OpenOrCreate);
                         model.Image.CopyTo(stream);
                     }

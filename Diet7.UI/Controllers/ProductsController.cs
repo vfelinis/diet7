@@ -74,7 +74,7 @@ namespace Diet7.UI.Controllers
                 if (model.Image != null)
                 {
                     product.Image = $"{product.Id}{System.IO.Path.GetExtension(model.Image.FileName)}";
-                    var path = System.IO.Path.Combine(_env.WebRootPath, AppConstants.ImageBaseFolder, AppConstants.ProductImageFolder, product.Image);
+                    var path = System.IO.Path.Combine(AppConstants.ImageBasePath, AppConstants.ImageBaseFolder, AppConstants.ProductImageFolder, product.Image);
                     using var stream = new System.IO.FileStream(path, FileMode.OpenOrCreate);
                     model.Image.CopyTo(stream);
 
@@ -145,7 +145,7 @@ namespace Diet7.UI.Controllers
                     else if (model.Image != null)
                     {
                         product.Image = $"{product.Id}{System.IO.Path.GetExtension(model.Image.FileName)}";
-                        var path = System.IO.Path.Combine(_env.WebRootPath, AppConstants.ImageBaseFolder, AppConstants.ProductImageFolder, product.Image);
+                        var path = System.IO.Path.Combine(AppConstants.ImageBasePath, AppConstants.ImageBaseFolder, AppConstants.ProductImageFolder, product.Image);
                         using var stream = new System.IO.FileStream(path, FileMode.OpenOrCreate);
                         model.Image.CopyTo(stream);
                     }

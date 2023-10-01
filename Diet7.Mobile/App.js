@@ -1,10 +1,7 @@
 import * as React from "react";
-import { debounce, forEach, indexOf } from 'lodash';
+import { debounce } from 'lodash';
 import { useEffect, useState, useCallback } from 'react';
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { NavigationContainer } from "@react-navigation/native";
-import * as Calendar from 'expo-calendar';
-import * as Localization from 'expo-localization';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -13,7 +10,7 @@ import {
   createDrawerNavigator,
   DrawerContentScrollView,
 } from "@react-navigation/drawer";
-import { MaterialCommunityIcons, MaterialIcons, FontAwesome, Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons, Entypo } from "@expo/vector-icons";
 import {
   NativeBaseProvider,
   Button,
@@ -41,12 +38,13 @@ import {
 global.__reanimatedWorkletInit = () => { };
 const Drawer = createDrawerNavigator();
 
-const apiHost = 'http://192.168.1.164:5259';
-const apiPlantsPath = '/api/plants/{userId}';
-const apiPlantPath = '/api/plants/{userId}/{plantId}';
-const apiPlantTasksPath = '/api/planttasks/{userId}';
-const apiPlantTaskPath = '/api/planttasks/{userId}/{taskId}';
-const apiPlantTaskTypesPath = '/api/planttasktypes';
+const apiHost = 'http://192.168.1.164:5037';
+const apiMenusPath = '/api/menus/{userId}';
+const apiMenuItemsPath = '/api/menus/{userId}/items/{itemId}';
+const apiRecipesPath = '/api/recipes/{userId}';
+const apiRecipeDetailPath = '/api/recipeDetail/{userId}/{recipeId}';
+const apiProductsPath = '/api/products/{userId}';
+const apiIlnessesPath = '/api/ilnesses';
 
 async function getUserId() {
   try {
@@ -61,7 +59,6 @@ async function getUserId() {
     Alert.alert('Ошибка', '', [{ text: 'Ok' }]);
     throw error;
   }
-
 }
 
 let fakeIllnesses = [
@@ -69,43 +66,40 @@ let fakeIllnesses = [
     id: 1,
     name: 'illnesse1',
     description: 'Description',
-    menu: null
+    menuItems: []
   },
   {
     id: 2,
     name: 'illnesse2',
     description: 'Description',
-    menu: {
-      id: 1,
-      items: [
-        {
+    menuItems: [
+      {
+        id: 1,
+        day: 1,
+        hour: 9,
+        recipe: {
           id: 1,
-          day: 1,
-          hour: 9,
-          recipe: {
-            id: 1,
-            name: 'recipe1',
-            description: 'Description',
-            image: 'https://img1.russianfood.com/dycontent/images_upl/559/big_558596.jpg',
-            type: 1,
-            calories: 10
-          }
-        },
-        {
-          id: 2,
-          day: 1,
-          hour: 7,
-          recipe: {
-            id: 1,
-            name: 'recipe2',
-            description: 'Description',
-            image: 'https://img1.russianfood.com/dycontent/images_upl/559/big_558596.jpg',
-            type: 2,
-            calories: 10
-          }
+          name: 'recipe1',
+          description: 'Description',
+          image: 'https://img1.russianfood.com/dycontent/images_upl/559/big_558596.jpg',
+          type: 1,
+          calories: 10
         }
-      ]
-    }
+      },
+      {
+        id: 2,
+        day: 1,
+        hour: 7,
+        recipe: {
+          id: 1,
+          name: 'recipe2',
+          description: 'Description',
+          image: 'https://img1.russianfood.com/dycontent/images_upl/559/big_558596.jpg',
+          type: 2,
+          calories: 10
+        }
+      }
+    ]
   }
 ];
 
@@ -243,6 +237,136 @@ let fakeProducts = [
   }
 ]
 
+const days = [
+  {
+    id: 1,
+    name: 'Понедельник'
+  },
+  {
+    id: 2,
+    name: 'Вторник'
+  },
+  {
+    id: 3,
+    name: 'Среда'
+  },
+  {
+    id: 4,
+    name: 'Четверг'
+  },
+  {
+    id: 5,
+    name: 'Пятница'
+  },
+  {
+    id: 6,
+    name: 'Суббота'
+  },
+  {
+    id: 7,
+    name: 'Воскресенье'
+  }
+];
+
+const times = [
+  {
+    id: 1,
+    name: '01:00'
+  },
+  {
+    id: 2,
+    name: '02:00'
+  },
+  {
+    id: 3,
+    name: '03:00'
+  },
+  {
+    id: 4,
+    name: '04:00'
+  },
+  {
+    id: 5,
+    name: '05:00'
+  },
+  {
+    id: 6,
+    name: '06:00'
+  },
+  {
+    id: 7,
+    name: '07:00'
+  },
+  {
+    id: 8,
+    name: '08:00'
+  },
+  {
+    id: 9,
+    name: '09:00'
+  },
+  {
+    id: 10,
+    name: '10:00'
+  },
+  {
+    id: 11,
+    name: '11:00'
+  },
+  {
+    id: 12,
+    name: '12:00'
+  },
+  {
+    id: 13,
+    name: '13:00'
+  },
+  {
+    id: 14,
+    name: '14:00'
+  },
+  {
+    id: 15,
+    name: '15:00'
+  },
+  {
+    id: 16,
+    name: '16:00'
+  },
+  {
+    id: 17,
+    name: '17:00'
+  },
+  {
+    id: 18,
+    name: '18:00'
+  },
+  {
+    id: 19,
+    name: '19:00'
+  },
+  {
+    id: 20,
+    name: '21:00'
+  },
+  {
+    id: 21,
+    name: '21:00'
+  },
+  {
+    id: 22,
+    name: '22:00'
+  },
+  {
+    id: 23,
+    name: '23:00'
+  },
+  {
+    id: 24,
+    name: '24:00'
+  }
+];
+
 function getType(value) {
   var type = 'other';
   switch (value) {
@@ -259,14 +383,18 @@ function getType(value) {
 }
 
 function getHour(hour) {
-  return `${hour.toString().length === 1 ? '0' : ''}${hour}:00`;
+  return times.find(s => s.id === hour).name;
+}
+
+function getDay(day) {
+  return days.find(s => s.id === day).name;
 }
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function HomeComponent(props) {
+function MenuComponent(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [illnesses, setIllnesses] = useState([]);
   const [selectedIllnessId, setSelectedIllnessId] = useState(0);
@@ -275,19 +403,20 @@ function HomeComponent(props) {
   const [selectedItemId, setSelectedItemId] = useState(0);
 
 
-  const fetchData = async (filter) => {
+  const fetchData = async () => {
     try {
       const userId = await getUserId();
-      // const response = await axios.get(`${apiHost}${apiPlantsPath.replace('{userId}', userId)}`, {
-      //   params: {
-      //     filter: filter
-      //   }
-      // });
-      response = {
-        data: fakeIllnesses
-      };
-      await delay(2000);
+      const response = await axios.get(`${apiHost}${apiMenusPath.replace('{userId}', userId)}`);
       setIllnesses(response.data);
+      if (!!props.route.params?.illnessId) {
+        setSelectedIllnessId(props.route.params.illnessId);
+        setSelectedIllness(response.data.find(s => s.id === props.route.params.illnessId));
+
+        if (!!props.route.params?.day) {
+          handleDaySelect(props.route.params.day);
+        }
+      }
+
       setIsLoading(false);
     } catch (error) {
       Alert.alert('Ошибка', '', [{ text: 'Ok' }]);
@@ -320,10 +449,10 @@ function HomeComponent(props) {
   };
 
   const handleDelete = (id) => {
-    //axios.post(`${apiHost}${apiPlantTasksPath.replace('{userId}', userId)}`);
+    axios.delete(`${apiHost}${apiMenuItemsPath.replace('{userId}', userId).replace('{itemId}', id)}`);
     const updatedIllnesses = [...illnesses];
     const updatedIllness = updatedIllnesses.find(s => s.id === selectedIllnessId);
-    updatedIllness.menu.items = updatedIllness.menu.items.filter(s => s.id !== id);
+    updatedIllness.menuItems = updatedIllness.menuItems.filter(s => s.id !== id);
     setIllnesses(updatedIllnesses);
     setSelectedIllness(updatedIllness);
   };
@@ -331,7 +460,7 @@ function HomeComponent(props) {
   const getItems = (day) => {
     return selectedDay == day
       ? <Box w={80}>
-        {selectedIllness.menu.items.filter(s => s.day === day).sort((l, r) => l.hour - r.hour).map((item, index) =>
+        {selectedIllness.menuItems.filter(s => s.day === day).sort((l, r) => l.hour - r.hour).map((item, index) =>
           <VStack key={index} borderBottomWidth="1" _dark={{
             borderColor: "muted.50"
           }} borderColor="muted.800" pl={["0", "4"]} pr={["0", "5"]} py="2">
@@ -379,7 +508,7 @@ function HomeComponent(props) {
                   }} _light={{
                     backgroundColor: "gray.50"
                   }}>
-                    <Box w="100%" h="200px">
+                    {!!item.recipe.image && <Box w="100%" h="200px">
                       <Image resizeMode="cover" source={{ uri: `${item.recipe.image}` }} alt={item.recipe.name} style={{ width: '100%', height: '100%' }} />
                       <Center bg="violet.500" _dark={{
                         bg: "violet.400"
@@ -390,7 +519,8 @@ function HomeComponent(props) {
                       }} position="absolute" bottom="0" px="3" py="1.5">
                         Фото
                       </Center>
-                    </Box>
+                    </Box>}
+
                     <Stack p="4" space={3}>
                       <Text fontWeight="400">
                         {item.recipe.description}
@@ -428,26 +558,22 @@ function HomeComponent(props) {
         }
         {
           !!selectedIllness
-            ? !!selectedIllness.menu
-              ? <VStack space={4} mt={2} alignItems="center">
-                <Button onPress={() => handleDaySelect(1)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 1 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Понедельник</Button>
-                {getItems(1)}
-                <Button onPress={() => handleDaySelect(2)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 2 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Вторник</Button>
-                {getItems(2)}
-                <Button onPress={() => handleDaySelect(3)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 3 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Среда</Button>
-                {getItems(3)}
-                <Button onPress={() => handleDaySelect(4)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 4 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Четверг</Button>
-                {getItems(4)}
-                <Button onPress={() => handleDaySelect(5)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 5 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Пятница</Button>
-                {getItems(5)}
-                <Button onPress={() => handleDaySelect(6)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 6 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="warning.500" rounded="md" shadow={3} >Суббота</Button>
-                {getItems(6)}
-                <Button onPress={() => handleDaySelect(7)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 7 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="warning.500" rounded="md" shadow={3} >Воскресенье</Button>
-                {getItems(7)}
-              </VStack>
-              : <Button onPress={() => { }} mt={2} w="80" bg="tertiary.500" rounded="md" shadow={3}>
-                Создать меню
-              </Button>
+            ? <VStack space={4} mt={2} alignItems="center">
+              <Button onPress={() => handleDaySelect(1)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 1 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Понедельник</Button>
+              {getItems(1)}
+              <Button onPress={() => handleDaySelect(2)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 2 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Вторник</Button>
+              {getItems(2)}
+              <Button onPress={() => handleDaySelect(3)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 3 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Среда</Button>
+              {getItems(3)}
+              <Button onPress={() => handleDaySelect(4)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 4 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Четверг</Button>
+              {getItems(4)}
+              <Button onPress={() => handleDaySelect(5)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 5 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="tertiary.500" rounded="md" shadow={3} >Пятница</Button>
+              {getItems(5)}
+              <Button onPress={() => handleDaySelect(6)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 6 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="warning.500" rounded="md" shadow={3} >Суббота</Button>
+              {getItems(6)}
+              <Button onPress={() => handleDaySelect(7)} endIcon={<Icon as={MaterialIcons} name={selectedDay === 7 ? "keyboard-arrow-up" : "keyboard-arrow-down"} size="sm" />} w="80" bg="warning.500" rounded="md" shadow={3} >Воскресенье</Button>
+              {getItems(7)}
+            </VStack>
             : null
         }
       </Box>
@@ -459,19 +585,10 @@ function RecipesComponent(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
 
-  const fetchData = async (filter) => {
+  const fetchData = async () => {
     try {
       const userId = await getUserId();
-      // const response = await axios.get(`${apiHost}${apiPlantsPath.replace('{userId}', userId)}`, {
-      //   params: {
-      //     filter: filter,
-      //     isMy: true
-      //   }
-      // });
-      response = {
-        data: fakeRecipes
-      };
-      await delay(2000);
+      const response = await axios.get(`${apiHost}${apiRecipesPath.replace('{userId}', userId)}`);
       setRecipes(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -510,7 +627,7 @@ function RecipesComponent(props) {
                 }} _light={{
                   backgroundColor: "gray.50"
                 }}>
-                  <Box w="100%" h="200px">
+                  {!!recipe.image && <Box w="100%" h="200px">
                     <Image resizeMode="cover" source={{ uri: `${recipe.image}` }} alt={recipe.name} style={{ width: '100%', height: '100%' }} />
                     <Center bg="violet.500" _dark={{
                       bg: "violet.400"
@@ -521,7 +638,7 @@ function RecipesComponent(props) {
                     }} position="absolute" bottom="0" px="3" py="1.5">
                       Фото
                     </Center>
-                  </Box>
+                  </Box>}
                   <Stack p="4" space={3}>
                     <Stack space={2}>
                       <Heading size="md" ml="-1">
@@ -554,19 +671,10 @@ function RecipeDetailComponent(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [recipe, setRecipe] = useState([]);
 
-  const fetchData = async (filter) => {
+  const fetchData = async () => {
     try {
       const userId = await getUserId();
-      // const response = await axios.get(`${apiHost}${apiPlantsPath.replace('{userId}', userId)}`, {
-      //   params: {
-      //     filter: filter,
-      //     isMy: true
-      //   }
-      // });
-      response = {
-        data: fakeRecipes.find(s => s.id === 1)
-      };
-      await delay(2000);
+      const response = await axios.get(`${apiHost}${apiRecipeDetailPath.replace('{userId}', userId).replace('{recipeId}', props.route.params.recipeId)}`);
       setRecipe(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -595,7 +703,7 @@ function RecipeDetailComponent(props) {
                 }} _light={{
                   backgroundColor: "gray.50"
                 }}>
-                  <Box w="100%" h="200px">
+                  {!!recipe.image && <Box w="100%" h="200px">
                     <Image resizeMode="cover" source={{ uri: `${recipe.image}` }} alt={recipe.name} style={{ width: '100%', height: '100%' }} />
                     <Center bg="violet.500" _dark={{
                       bg: "violet.400"
@@ -606,7 +714,8 @@ function RecipeDetailComponent(props) {
                     }} position="absolute" bottom="0" px="3" py="1.5">
                       Фото
                     </Center>
-                  </Box>
+                  </Box>}
+
                   <Stack p="4" space={3}>
                     <Stack space={2}>
                       <Heading size="md" ml="-1">
@@ -636,7 +745,7 @@ function RecipeDetailComponent(props) {
                   }} _light={{
                     backgroundColor: "gray.50"
                   }}>
-                    <Box w="100%" h="200px">
+                    {!!product.image && <Box w="100%" h="200px">
                       <Image resizeMode="cover" source={{ uri: `${product.image}` }} alt={product.name} style={{ width: '100%', height: '100%' }} />
                       <Center bg="violet.500" _dark={{
                         bg: "violet.400"
@@ -647,7 +756,7 @@ function RecipeDetailComponent(props) {
                       }} position="absolute" bottom="0" px="3" py="1.5">
                         Фото
                       </Center>
-                    </Box>
+                    </Box>}
                     <Stack p="4" space={3}>
                       <Stack space={2}>
                         <Heading size="md" ml="-1">
@@ -681,7 +790,7 @@ function RecipeDetailComponent(props) {
                   }} _light={{
                     backgroundColor: "gray.50"
                   }}>
-                    <Box w="100%" h="200px">
+                    {!!step.image && <Box w="100%" h="200px">
                       <Image resizeMode="cover" source={{ uri: `${step.image}` }} alt={step.name} style={{ width: '100%', height: '100%' }} />
                       <Center bg="violet.500" _dark={{
                         bg: "violet.400"
@@ -692,7 +801,7 @@ function RecipeDetailComponent(props) {
                       }} position="absolute" bottom="0" px="3" py="1.5">
                         Фото
                       </Center>
-                    </Box>
+                    </Box>}
                     <Stack p="4" space={3}>
                       <Stack space={2}>
                         <Heading size="md" ml="-1">
@@ -730,8 +839,9 @@ function ProductsComponent(props) {
     setSelectedCategory(category);
   };
 
-  const handleChange = (productId, isExcluded) => {
-    //axios.post(`${apiHost}${apiPlantTasksPath.replace('{userId}', userId)}`);
+  const handleChange = async (productId, isExcluded) => {
+    const userId = await getUserId();
+    axios.post(`${apiHost}${apiProductsPath.replace('{userId}', userId)}`, { productId:productId, isExcluded:isExcluded });
     const updatedProducts = [...products];
     const updatedProduct = updatedProducts.find(s => s.id === productId);
     updatedProduct.isExcluded = isExcluded;
@@ -767,18 +877,10 @@ function ProductsComponent(props) {
     return data;
   };
 
-  const fetchData = async (filter) => {
+  const fetchData = async () => {
     try {
       const userId = await getUserId();
-      // const response = await axios.get(`${apiHost}${apiPlantTasksPath.replace('{userId}', userId)}`, {
-      //   params: {
-      //     filter: filter
-      //   }
-      // });
-      response = {
-        data: fakeProducts
-      };
-      await delay(2000);
+      const response = await axios.get(`${apiHost}${apiProductsPath.replace('{userId}', userId)}`);
 
       const newCategories = ['Все', 'Исключенные']
         .concat(...new Set(response.data.flatMap(s => s.allowedFor).map(s => `Разрешены при '${s}'`)))
@@ -823,7 +925,7 @@ function ProductsComponent(props) {
                   }} _light={{
                     backgroundColor: "gray.50"
                   }}>
-                    <Box w="100%" h="200px">
+                    {!!product.image && <Box w="100%" h="200px">
                       <Image resizeMode="cover" source={{ uri: `${product.image}` }} alt={product.name} style={{ width: '100%', height: '100%' }} />
                       <Center bg="violet.500" _dark={{
                         bg: "violet.400"
@@ -834,7 +936,7 @@ function ProductsComponent(props) {
                       }} position="absolute" bottom="0" px="3" py="1.5">
                         Фото
                       </Center>
-                    </Box>
+                    </Box>}
                     <Stack p="4" space={3}>
                       <Stack space={2}>
                         <Heading size="md" ml="-1">
@@ -868,21 +970,18 @@ function ProductsComponent(props) {
 }
 
 function CreateMenuItemComponent(props) {
-  const [isCalendarPermissionsGranted, setCalendarPermissionsGranted] = useState(false);
-  const [myCalendarId, setMyCalendarId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({ name: '', type: '' });
-  const [taskTypes, setTaskTypes] = useState([]);
-  const [name, setName] = useState('');
-  const [type, setType] = useState('');
-  const [dateProcessing, setDateProcessing] = useState(new Date());
+  const [illnesses, setIllnesses] = useState([]);
+  const [illnessId, setIllnessId] = useState(0);
+  const [day, setDay] = useState(1);
+  const [hour, setHour] = useState(1);
 
 
-  const fetchData = async (filter) => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(`${apiHost}${apiPlantTaskTypesPath}`);
-      setTaskTypes(response.data);
+      const response = await axios.get(`${apiHost}${apiIlnessesPath}`);
+      setIllnesses(response.data);
       setIsLoading(false);
     } catch (error) {
       Alert.alert('Ошибка', '', [{ text: 'Ok' }]);
@@ -893,86 +992,21 @@ function CreateMenuItemComponent(props) {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status === 'granted') {
-        const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-        const existingCalendar = calendars.find(s => s.name === 'IndoorJungle');
-        if (!existingCalendar) {
-          const defaultCalendarSource = { isLocalAccount: true, name: 'Справочник комнатных растений' };
-          const newCalendarID = await Calendar.createCalendarAsync({
-            title: 'Справочник комнатных растений',
-            color: 'green',
-            entityType: Calendar.EntityTypes.EVENT,
-            sourceId: defaultCalendarSource.id,
-            source: defaultCalendarSource,
-            name: 'IndoorJungle',
-            ownerAccount: 'personal',
-            accessLevel: Calendar.CalendarAccessLevel.OWNER,
-          });
-          setMyCalendarId(newCalendarID);
-        }
-        else {
-          setMyCalendarId(existingCalendar.id);
-        }
-        setCalendarPermissionsGranted(true);
-      }
-    })();
-  }, []);
-
-  const validate = () => {
-    let isValid = true;
-    let errors = { name: '', type: '' };
-    if (name.length === 0) {
-      errors.name = 'Обязательное поле.';
-      isValid = false;
-    }
-    if (type.length === 0) {
-      errors.type = 'Обязательное поле.';
-      isValid = false;
-    }
-
-    setErrors(errors);
-    return isValid;
-  };
-
   const onSubmit = async () => {
-    if (validate()) {
-      setIsSubmitting(true);
-      const event = {
-        title: name,
-        startDate: dateProcessing,
-        endDate: dateProcessing,
-        timeZone: Localization.timeZone,
-        alarms: [
-          {
-            relativeOffset: 0,
-            method: Calendar.AlarmMethod.ALERT,
-          },
-        ],
+    setIsSubmitting(true);
+    try {
+      const newItem = {
+        illnessId: illnessId,
+        day: day,
+        hour: hour,
+        recipeId: props.route.params.recipeId
       };
-      try {
-        const eventId = await Calendar.createEventAsync(myCalendarId, event);
-        const newTask = {
-          name: name,
-          dateProcessing: dateProcessing,
-          plantId: props.route.params.plantId,
-          typeId: type,
-          eventId: eventId
-        };
-        const userId = await getUserId();
-        await axios.post(`${apiHost}${apiPlantTasksPath.replace('{userId}', userId)}`, newTask);
-        props.navigation.navigate('Tasks');
-      } catch (e) {
-        Alert.alert('Ошибка', '', [{ text: 'Ok' }]);
-      }
+      const userId = await getUserId();
+      await axios.post(`${apiHost}${apiMenusPath.replace('{userId}', userId)}`, newItem);
+      props.navigation.navigate('Menu', { illnessId: illnessId, day: day });
+    } catch (e) {
+      Alert.alert('Ошибка', '', [{ text: 'Ok' }]);
     }
-  };
-
-  const onChangeDateProcessing = (event, selectedDate) => {
-    const currentDate = selectedDate;
-    setDateProcessing(currentDate);
   };
 
   return (
@@ -981,57 +1015,46 @@ function CreateMenuItemComponent(props) {
         {
           isLoading
             ? <Spinner size="lg" mt="5" />
-            : <VStack w="80">
-              <FormControl isRequired isInvalid={errors.name}>
-                <FormControl.Label _text={{
-                  bold: true
-                }}>Название</FormControl.Label>
-                <Input placeholder="Название" onChangeText={value => setName(value)} />
-                {
-                  errors.name
-                    ? <FormControl.ErrorMessage>{errors.name}</FormControl.ErrorMessage>
-                    : <FormControl.HelperText></FormControl.HelperText>
-                }
-              </FormControl>
-              <FormControl isRequired isInvalid={errors.type}>
-                <FormControl.Label _text={{
-                  bold: true
-                }}>Тип</FormControl.Label>
-                <Select selectedValue={type} minWidth="200" accessibilityLabel="Выберите тип" placeholder="Выберите тип" _selectedItem={{
-                  bg: "teal.600",
-                  endIcon: <CheckIcon size="5" />
-                }} onValueChange={itemValue => setType(itemValue)}>
-                  {taskTypes.map((item, index) => <Select.Item key={index} label={item.name} value={`${item.id}`} />)}
-                </Select>
-                {
-                  errors.type
-                    ? <FormControl.ErrorMessage>{errors.type}</FormControl.ErrorMessage>
-                    : <FormControl.HelperText></FormControl.HelperText>
-                }
-              </FormControl>
-              <FormControl>
-                <FormControl.Label _text={{
-                  bold: true
-                }}>Дата обработки: {dateProcessing.toLocaleString()}</FormControl.Label>
-                <Button.Group>
-                  <Button onPress={() => DateTimePickerAndroid.open({
-                    value: dateProcessing,
-                    mode: 'date',
-                    is24Hour: true,
-                    onChange: onChangeDateProcessing
-                  })}>Изменить дату</Button>
-                  <Button onPress={() => DateTimePickerAndroid.open({
-                    value: dateProcessing,
-                    mode: 'time',
-                    is24Hour: true,
-                    onChange: onChangeDateProcessing
-                  })}>Изменить время</Button>
-                </Button.Group>
-              </FormControl>
-              <Button disabled={!isCalendarPermissionsGranted} isLoading={isSubmitting} onPress={onSubmit} mt="5">
-                Создать
-              </Button>
-            </VStack>
+            : illnesses.length
+              ? <VStack w="80">
+                <FormControl isRequired>
+                  <FormControl.Label _text={{
+                    bold: true
+                  }}>Заболевание</FormControl.Label>
+                  <Select selectedValue={illnessId} minWidth="200" accessibilityLabel="Выберите заболевание" placeholder="Выберите заболевание" _selectedItem={{
+                    bg: "teal.600",
+                    endIcon: <CheckIcon size="5" />
+                  }} onValueChange={itemValue => setIllnessId(itemValue)}>
+                    {illnesses.map((item, index) => <Select.Item key={index} label={item.name} value={item.id} />)}
+                  </Select>
+                </FormControl>
+                <FormControl isRequired>
+                  <FormControl.Label _text={{
+                    bold: true
+                  }}>День</FormControl.Label>
+                  <Select selectedValue={day} minWidth="200" accessibilityLabel="Выберите день" placeholder="Выберите день" _selectedItem={{
+                    bg: "teal.600",
+                    endIcon: <CheckIcon size="5" />
+                  }} onValueChange={itemValue => setDay(itemValue)}>
+                    {days.map((item, index) => <Select.Item key={index} label={item.name} value={item.id} />)}
+                  </Select>
+                </FormControl>
+                <FormControl isRequired>
+                  <FormControl.Label _text={{
+                    bold: true
+                  }}>Время</FormControl.Label>
+                  <Select selectedValue={hour} minWidth="200" accessibilityLabel="Выберите время" placeholder="Выберите время" _selectedItem={{
+                    bg: "teal.600",
+                    endIcon: <CheckIcon size="5" />
+                  }} onValueChange={itemValue => setHour(itemValue)}>
+                    {times.map((item, index) => <Select.Item key={index} label={item.name} value={item.id} />)}
+                  </Select>
+                </FormControl>
+                <Button isDisabled={!illnessId} colorScheme="primary" isLoading={isSubmitting} onPress={onSubmit} mt="5">
+                  Добавить
+                </Button>
+              </VStack>
+              : <Text>Нет заболеваний</Text>
         }
       </Box>
     </ScrollView>
@@ -1040,12 +1063,12 @@ function CreateMenuItemComponent(props) {
 
 const getIcon = (screenName) => {
   switch (screenName) {
-    case "Home":
-      return <MaterialCommunityIcons name="home" />;
+    case "Menu":
+      return <Entypo name="menu" />;
     case "Recipes":
-      return <Entypo name="add-to-list" />;
+      return <MaterialCommunityIcons name="book-open" />;
     case "Products":
-      return <FontAwesome name="tasks" />;
+      return <MaterialIcons name="fastfood" />;
     default:
       return undefined;
   }
@@ -1053,8 +1076,8 @@ const getIcon = (screenName) => {
 
 const getTitle = (screenName) => {
   switch (screenName) {
-    case "Home":
-      return 'Главная';
+    case "Menu":
+      return 'Меню';
     case "Recipes":
       return 'Рецепты';
     case "RecipeDetail":
@@ -1125,7 +1148,7 @@ function MyMenu() {
       <Drawer.Navigator
         drawerContent={(props) => <MyMenuContent {...props} />}
       >
-        <Drawer.Screen name="Home" options={{ title: `${getTitle('Home')}`, unmountOnBlur: true }} component={HomeComponent} />
+        <Drawer.Screen name="Menu" options={{ title: `${getTitle('Menu')}`, unmountOnBlur: true }} component={MenuComponent} />
         <Drawer.Screen name="Recipes" options={{ title: `${getTitle('Recipes')}`, unmountOnBlur: true }} component={RecipesComponent} />
         <Drawer.Screen name="RecipeDetail" options={{ title: `${getTitle('RecipeDetail')}`, unmountOnBlur: true }} component={RecipeDetailComponent} />
         <Drawer.Screen name="Products" options={{ title: `${getTitle('Products')}`, unmountOnBlur: true }} component={ProductsComponent} />

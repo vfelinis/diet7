@@ -1,11 +1,13 @@
 ﻿using Diet7.UI.Data;
 using Diet7.UI.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Diet7.UI.Controllers
 {
+    [Authorize]
     public class ProhibitedProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -59,10 +61,17 @@ namespace Diet7.UI.Controllers
         {
             if (ModelState.IsValid)
             {
-                prohibitedProduct.DateCreated = DateTimeOffset.Now;
-                _context.Add(prohibitedProduct);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (await _context.AllowedProducts.AnyAsync(s => s.IllnessId == prohibitedProduct.IllnessId && s.ProductId == prohibitedProduct.ProductId))
+                {
+                    ModelState.AddModelError("", "Продукт уже добавлен в качестве разрешенного.");
+                }
+                else
+                {
+                    prohibitedProduct.DateCreated = DateTimeOffset.Now;
+                    _context.Add(prohibitedProduct);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
             ViewData["IllnessId"] = new SelectList(_context.Illnesses, "Id", "Name", prohibitedProduct.IllnessId);
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", prohibitedProduct.ProductId);
@@ -108,9 +117,17 @@ namespace Diet7.UI.Controllers
                     {
                         return NotFound();
                     }
-                    item.ProductId = prohibitedProduct.ProductId;
-                    item.IllnessId = prohibitedProduct.IllnessId;
-                    await _context.SaveChangesAsync();
+                    if (await _context.AllowedProducts.AnyAsync(s => s.IllnessId == prohibitedProduct.IllnessId && s.ProductId == prohibitedProduct.ProductId))
+                    {
+                        ModelState.AddModelError("", "Продукт уже добавлен в качестве разрешенного.");
+                    }
+                    else
+                    {
+                        item.ProductId = prohibitedProduct.ProductId;
+                        item.IllnessId = prohibitedProduct.IllnessId;
+                        await _context.SaveChangesAsync();
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -123,7 +140,6 @@ namespace Diet7.UI.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             ViewData["IllnessId"] = new SelectList(_context.Illnesses, "Id", "Name", prohibitedProduct.IllnessId);
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", prohibitedProduct.ProductId);

@@ -1,10 +1,12 @@
 ﻿using Diet7.UI.Data;
 using Diet7.UI.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Diet7.UI.Controllers
 {
+    [Authorize]
     public class IllnessesController : Controller
     {
         private readonly ApplicationDbContext _context;
