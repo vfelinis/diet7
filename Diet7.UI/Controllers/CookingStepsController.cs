@@ -25,7 +25,7 @@ namespace Diet7.UI.Controllers
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.CookingSteps.Include(c => c.Recipe);
-            return View(await applicationDbContext.ToListAsync());
+            return View(await applicationDbContext.OrderBy(s => s.Recipe.Name).ThenBy(s => s.Order).ToListAsync());
         }
 
         // GET: CookingSteps/Details/5
@@ -69,7 +69,8 @@ namespace Diet7.UI.Controllers
                     Description = model.Description,
                     Order = model.Order,
                     DateCreated = DateTimeOffset.Now,
-                    DateUpdated = DateTimeOffset.Now
+                    DateUpdated = DateTimeOffset.Now,
+                    RecipeId = model.RecipeId
                 };
                 _context.Add(cookingStep);
                 await _context.SaveChangesAsync();
@@ -131,6 +132,7 @@ namespace Diet7.UI.Controllers
                     cookingStep.Name = model.Name;
                     cookingStep.Description = model.Description;
                     cookingStep.Order = model.Order;
+                    cookingStep.RecipeId = model.RecipeId;
                     cookingStep.DateUpdated = DateTimeOffset.Now;
 
                     if (model.IsDeleteImage)

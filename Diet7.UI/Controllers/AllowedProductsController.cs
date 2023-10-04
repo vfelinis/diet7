@@ -21,7 +21,7 @@ namespace Diet7.UI.Controllers
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.AllowedProducts.Include(a => a.Illness).Include(a => a.Product);
-            return View(await applicationDbContext.ToListAsync());
+            return View(await applicationDbContext.OrderBy(s => s.Illness.Name).ThenBy(s => s.Product.Name).ToListAsync());
         }
 
         // GET: AllowedProducts/Details/5

@@ -2,7 +2,11 @@
 {
     public enum RecipeType
     {
-        First = 0, Second = 1,
+        Other = 0,
+        First = 1,
+        Second = 2,
+        Salad = 3,
+        Drink = 4
     }
     public class Recipe
     {

@@ -21,7 +21,7 @@ namespace Diet7.UI.ApiControllers
         [HttpGet("api/menus/{userId}")]
         public async Task<List<IllnessDto>> GetMenus([FromRoute] string userId)
         {
-            var illnesses = await _context.Illnesses.Where(s => s.IsActive).Select(s => new IllnessDto
+            var illnesses = await _context.Illnesses.Where(s => s.IsActive).OrderBy(s => s.Name).Select(s => new IllnessDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -34,7 +34,7 @@ namespace Diet7.UI.ApiControllers
                 var menuItems = await _context.Menus.Include(s => s.MenuItems).ThenInclude(s => s.Recipe).Where(s => s.UserId == user.Id).ToListAsync();
                 illnesses.ForEach(illness =>
                 {
-                    illness.MenuItems = menuItems.Where(s => s.IllnessId == illness.Id).SelectMany(s => s.MenuItems).Select(s => new MenuItemDto
+                    illness.MenuItems = menuItems.Where(s => s.IllnessId == illness.Id).SelectMany(s => s.MenuItems).OrderBy(s => s.Recipe.Name).Select(s => new MenuItemDto
                     {
                         Id = s.Id,
                         Day = s.Day,
@@ -46,7 +46,7 @@ namespace Diet7.UI.ApiControllers
                             Description = s.Recipe.Description,
                             Type = s.Recipe.Type,
                             Calories = s.Recipe.Calories,
-                            Image = string.IsNullOrEmpty(s.Recipe.Image) ? null : $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{s.Recipe.Image}"
+                            Image = string.IsNullOrEmpty(s.Recipe.Image) ? null : $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{s.Recipe.Image}"
                         }
                     }).ToList();
                 });
@@ -73,7 +73,11 @@ namespace Diet7.UI.ApiControllers
         [HttpGet("api/recipes/{userId}")]
         public async Task<List<RecipeDto>> GetRecipes([FromRoute] string userId)
         {
-            var recipes = await _context.Recipes.Where(s => s.IsActive).Select(s => new RecipeDto
+            var user = await _context.AppUsers.FirstOrDefaultAsync(s => s.UniqueId == userId);
+            var entries = user != null
+                ? _context.Recipes.Where(s => !s.RecipeItems.Any(r => r.Product.ExcludeProducts.Any(e => e.UserId == user.Id)))
+                : _context.Recipes;
+            var recipes = await entries.Where(s => s.IsActive).OrderBy(s => s.Name).Select(s => new RecipeDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -87,7 +91,7 @@ namespace Diet7.UI.ApiControllers
             {
                 if (!string.IsNullOrEmpty(recipe.Image))
                 {
-                    recipe.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{recipe.Image}";
+                    recipe.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{recipe.Image}";
                 }
             });
 
@@ -95,9 +99,9 @@ namespace Diet7.UI.ApiControllers
         }
 
         [HttpGet("api/recipeDetail/{userId}/{recipeId}")]
-        public async Task<List<RecipeDto>> GetRecipeDetail([FromRoute] string userId, [FromRoute] int recipeId)
+        public async Task<RecipeDto> GetRecipeDetail([FromRoute] string userId, [FromRoute] int recipeId)
         {
-            var recipes = await _context.Recipes.Where(s => s.IsActive).Select(s => new RecipeDto
+            var recipe = await _context.Recipes.Where(s => s.Id == recipeId).Select(s => new RecipeDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -121,67 +125,61 @@ namespace Diet7.UI.ApiControllers
                     Description = cs.Description,
                     Image = cs.Image
                 }).ToList()
-            }).ToListAsync();
+            }).FirstOrDefaultAsync();
 
             var user = await _context.AppUsers.FirstOrDefaultAsync(s => s.UniqueId == userId);
             if (user != null)
             {
                 var excludedProducts = await _context.ExcludeProducts.AsNoTracking().Where(s => s.UserId == user.Id).ToListAsync();
-                recipes.ForEach(recipe =>
+                if (!string.IsNullOrEmpty(recipe.Image))
                 {
-                    if (!string.IsNullOrEmpty(recipe.Image))
+                    recipe.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{recipe.Image}";
+                }
+                recipe.Products.ForEach(product =>
+                {
+                    if (!string.IsNullOrEmpty(product.Image))
                     {
-                        recipe.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{recipe.Image}";
+                        product.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
                     }
-                    recipe.Products.ForEach(product =>
+                    product.IsExcluded = excludedProducts.Any(s => s.ProductId == product.Id);
+                });
+                recipe.CookingSteps.ForEach(cookingStep =>
+                {
+                    if (!string.IsNullOrEmpty(cookingStep.Image))
                     {
-                        if (!string.IsNullOrEmpty(product.Image))
-                        {
-                            product.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
-                        }
-                        product.IsExcluded = excludedProducts.Any(s => s.ProductId == product.Id);
-                    });
-                    recipe.CookingSteps.ForEach(cookingStep =>
-                    {
-                        if (!string.IsNullOrEmpty(cookingStep.Image))
-                        {
-                            cookingStep.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.CookingStepImageFolder}/{cookingStep.Image}";
-                        }
-                    });
+                        cookingStep.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.CookingStepImageFolder}/{cookingStep.Image}";
+                    }
                 });
             }
             else
             {
-                recipes.ForEach(recipe =>
+                if (!string.IsNullOrEmpty(recipe.Image))
                 {
-                    if (!string.IsNullOrEmpty(recipe.Image))
+                    recipe.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{recipe.Image}";
+                }
+                recipe.Products.ForEach(product =>
+                {
+                    if (!string.IsNullOrEmpty(product.Image))
                     {
-                        recipe.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.RecipeImageFolder}/{recipe.Image}";
+                        product.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
                     }
-                    recipe.Products.ForEach(product =>
+                });
+                recipe.CookingSteps.ForEach(cookingStep =>
+                {
+                    if (!string.IsNullOrEmpty(cookingStep.Image))
                     {
-                        if (!string.IsNullOrEmpty(product.Image))
-                        {
-                            product.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
-                        }
-                    });
-                    recipe.CookingSteps.ForEach(cookingStep =>
-                    {
-                        if (!string.IsNullOrEmpty(cookingStep.Image))
-                        {
-                            cookingStep.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.CookingStepImageFolder}/{cookingStep.Image}";
-                        }
-                    });
+                        cookingStep.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.CookingStepImageFolder}/{cookingStep.Image}";
+                    }
                 });
             }
 
-            return recipes;
+            return recipe;
         }
 
         [HttpGet("api/products/{userId}")]
         public async Task<List<ProductDto>> GetProdutcs([FromRoute] string userId)
         {
-            var products = await _context.Products.Where(s => s.IsActive).Select(s => new ProductDto
+            var products = await _context.Products.Where(s => s.IsActive).OrderBy(s => s.Name).Select(s => new ProductDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -200,7 +198,7 @@ namespace Diet7.UI.ApiControllers
                 {
                     if (!string.IsNullOrEmpty(product.Image))
                     {
-                        product.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
+                        product.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
                     }
                     product.IsExcluded = excludedProducts.Any(s => s.ProductId == product.Id);
                 });
@@ -211,7 +209,7 @@ namespace Diet7.UI.ApiControllers
                 {
                     if (!string.IsNullOrEmpty(product.Image))
                     {
-                        product.Image = $"http//{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
+                        product.Image = $"http://{_config.GetValue<string>("Host")}/{AppConstants.ImageBaseFolder}/{AppConstants.ProductImageFolder}/{product.Image}";
                     }
                 });
             }
@@ -260,7 +258,7 @@ namespace Diet7.UI.ApiControllers
         [HttpGet("api/ilnesses")]
         public async Task<List<IllnessDto>> GetIlnesses()
         {
-            var illnesses = await _context.Illnesses.Where(s => s.IsActive).Select(s => new IllnessDto
+            var illnesses = await _context.Illnesses.Where(s => s.IsActive).OrderBy(s => s.Name).Select(s => new IllnessDto
             {
                 Id = s.Id,
                 Name = s.Name,

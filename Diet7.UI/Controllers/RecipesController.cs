@@ -23,7 +23,7 @@ namespace Diet7.UI.Controllers
         // GET: Recipes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Recipes.ToListAsync());
+            return View(await _context.Recipes.OrderBy(s => s.Name).ToListAsync());
         }
 
         // GET: Recipes/Details/5

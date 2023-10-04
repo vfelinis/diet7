@@ -1,6 +1,7 @@
 using Diet7.UI.Constants;
 using Diet7.UI.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -46,6 +47,12 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(AppConstants.ImageBasePath, AppConstants.ImageBaseFolder)),
     RequestPath = $"/{AppConstants.ImageBaseFolder}"
+});
+FileExtensionContentTypeProvider contentTypes = new FileExtensionContentTypeProvider();
+contentTypes.Mappings[".apk"] = "application/vnd.android.package-archive";
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypes
 });
 
 app.UseRouting();

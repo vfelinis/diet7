@@ -24,6 +24,7 @@
     <Folder Include="wwwroot\images\cookingsteps\" />
     <Folder Include="wwwroot\images\recipes\" />
     <Folder Include="wwwroot\images\products\" />
+    <Folder Include="wwwroot\src\" />
   </ItemGroup>
 
 </Project>

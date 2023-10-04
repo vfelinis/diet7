@@ -38,7 +38,7 @@ import {
 global.__reanimatedWorkletInit = () => { };
 const Drawer = createDrawerNavigator();
 
-const apiHost = 'http://192.168.1.164:5037';
+const apiHost = 'http://diet7.mvp-stack.ru';
 const apiMenusPath = '/api/menus/{userId}';
 const apiMenuItemsPath = '/api/menus/{userId}/items/{itemId}';
 const apiRecipesPath = '/api/recipes/{userId}';
@@ -48,12 +48,12 @@ const apiIlnessesPath = '/api/ilnesses';
 
 async function getUserId() {
   try {
-    let value = await AsyncStorage.getItem('userId2');
+    let value = await AsyncStorage.getItem('userId3');
     if (value) {
       return value;
     }
     value = uuid.v4();
-    await AsyncStorage.setItem('userId2', value);
+    await AsyncStorage.setItem('userId3', value);
     return value;
   } catch (error) {
     Alert.alert('Ошибка', '', [{ text: 'Ok' }]);
@@ -371,10 +371,16 @@ function getType(value) {
   var type = 'other';
   switch (value) {
     case 1:
-      type = 'first';
+      type = 'первое';
       break;
     case 2:
-      type = 'second';
+      type = 'второе';
+      break;
+    case 3:
+      type = 'салат';
+      break;
+    case 4:
+      type = 'напиток';
       break;
     default:
       break;
@@ -669,7 +675,7 @@ function RecipesComponent(props) {
 
 function RecipeDetailComponent(props) {
   const [isLoading, setIsLoading] = useState(true);
-  const [recipe, setRecipe] = useState([]);
+  const [recipe, setRecipe] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -734,86 +740,98 @@ function RecipeDetailComponent(props) {
                   </Stack>
                 </Box>
 
-                <Heading size="lg">Продукты</Heading>
-                {recipe.products.map((product, index) => (
-                  <Box key={index} my="2" w="80" rounded="lg" overflow="hidden" borderColor="coolGray.200" borderWidth="1" _dark={{
-                    borderColor: "coolGray.600",
-                    backgroundColor: "gray.700"
-                  }} _web={{
-                    shadow: 2,
-                    borderWidth: 0
-                  }} _light={{
-                    backgroundColor: "gray.50"
-                  }}>
-                    {!!product.image && <Box w="100%" h="200px">
-                      <Image resizeMode="cover" source={{ uri: `${product.image}` }} alt={product.name} style={{ width: '100%', height: '100%' }} />
-                      <Center bg="violet.500" _dark={{
-                        bg: "violet.400"
-                      }} _text={{
-                        color: "warmGray.50",
-                        fontWeight: "700",
-                        fontSize: "xs"
-                      }} position="absolute" bottom="0" px="3" py="1.5">
-                        Фото
-                      </Center>
-                    </Box>}
-                    <Stack p="4" space={3}>
-                      <Stack space={2}>
-                        <Heading size="md" ml="-1">
-                          {product.name}
-                        </Heading>
-                      </Stack>
-                      <Text fontWeight="300">
-                        Калории: {product.calories}
-                      </Text>
-                      <Text fontWeight="400">
-                        {product.description}
-                      </Text>
-                      <Text fontWeight="400" color="tertiary.500">
-                        Разрешено при: {product.allowedFor.join(', ')}
-                      </Text>
-                      <Text fontWeight="400" color="danger.500">
-                        Запрещено при: {product.prohibitedFor.join(', ')}
-                      </Text>
-                    </Stack>
-                  </Box>
-                ))}
+                {
+                  !recipe.products.length
+                    ? null
+                    : <>
+                      <Heading size="lg">Продукты</Heading>
+                      {recipe.products.map((product, index) => (
+                        <Box key={index} my="2" w="80" rounded="lg" overflow="hidden" borderColor="coolGray.200" borderWidth="1" _dark={{
+                          borderColor: "coolGray.600",
+                          backgroundColor: "gray.700"
+                        }} _web={{
+                          shadow: 2,
+                          borderWidth: 0
+                        }} _light={{
+                          backgroundColor: "gray.50"
+                        }}>
+                          {!!product.image && <Box w="100%" h="200px">
+                            <Image resizeMode="cover" source={{ uri: `${product.image}` }} alt={product.name} style={{ width: '100%', height: '100%' }} />
+                            <Center bg="violet.500" _dark={{
+                              bg: "violet.400"
+                            }} _text={{
+                              color: "warmGray.50",
+                              fontWeight: "700",
+                              fontSize: "xs"
+                            }} position="absolute" bottom="0" px="3" py="1.5">
+                              Фото
+                            </Center>
+                          </Box>}
+                          <Stack p="4" space={3}>
+                            <Stack space={2}>
+                              <Heading size="md" ml="-1">
+                                {product.name}
+                              </Heading>
+                            </Stack>
+                            <Text fontWeight="300">
+                              Калории: {product.calories}
+                            </Text>
+                            <Text fontWeight="400">
+                              {product.description}
+                            </Text>
+                            <Text fontWeight="400" color="tertiary.500">
+                              Разрешено при: {product.allowedFor.join(', ')}
+                            </Text>
+                            <Text fontWeight="400" color="danger.500">
+                              Запрещено при: {product.prohibitedFor.join(', ')}
+                            </Text>
+                          </Stack>
+                        </Box>
+                      ))}
+                    </>
+                }
 
-                <Heading size="lg">Шаги приготовления</Heading>
-                {recipe.cookingSteps.map((step, index) => (
-                  <Box key={index} my="2" w="80" rounded="lg" overflow="hidden" borderColor="coolGray.200" borderWidth="1" _dark={{
-                    borderColor: "coolGray.600",
-                    backgroundColor: "gray.700"
-                  }} _web={{
-                    shadow: 2,
-                    borderWidth: 0
-                  }} _light={{
-                    backgroundColor: "gray.50"
-                  }}>
-                    {!!step.image && <Box w="100%" h="200px">
-                      <Image resizeMode="cover" source={{ uri: `${step.image}` }} alt={step.name} style={{ width: '100%', height: '100%' }} />
-                      <Center bg="violet.500" _dark={{
-                        bg: "violet.400"
-                      }} _text={{
-                        color: "warmGray.50",
-                        fontWeight: "700",
-                        fontSize: "xs"
-                      }} position="absolute" bottom="0" px="3" py="1.5">
-                        Фото
-                      </Center>
-                    </Box>}
-                    <Stack p="4" space={3}>
-                      <Stack space={2}>
-                        <Heading size="md" ml="-1">
-                          Шаг {index + 1}: {step.name}
-                        </Heading>
-                      </Stack>
-                      <Text fontWeight="400">
-                        {step.description}
-                      </Text>
-                    </Stack>
-                  </Box>
-                ))}
+                {
+                  !recipe.cookingSteps.length
+                    ? null
+                    : <>
+                      <Heading size="lg">Шаги приготовления</Heading>
+                      {recipe.cookingSteps.map((step, index) => (
+                        <Box key={index} my="2" w="80" rounded="lg" overflow="hidden" borderColor="coolGray.200" borderWidth="1" _dark={{
+                          borderColor: "coolGray.600",
+                          backgroundColor: "gray.700"
+                        }} _web={{
+                          shadow: 2,
+                          borderWidth: 0
+                        }} _light={{
+                          backgroundColor: "gray.50"
+                        }}>
+                          {!!step.image && <Box w="100%" h="200px">
+                            <Image resizeMode="cover" source={{ uri: `${step.image}` }} alt={step.name} style={{ width: '100%', height: '100%' }} />
+                            <Center bg="violet.500" _dark={{
+                              bg: "violet.400"
+                            }} _text={{
+                              color: "warmGray.50",
+                              fontWeight: "700",
+                              fontSize: "xs"
+                            }} position="absolute" bottom="0" px="3" py="1.5">
+                              Фото
+                            </Center>
+                          </Box>}
+                          <Stack p="4" space={3}>
+                            <Stack space={2}>
+                              <Heading size="md" ml="-1">
+                                Шаг {index + 1}: {step.name}
+                              </Heading>
+                            </Stack>
+                            <Text fontWeight="400">
+                              {step.description}
+                            </Text>
+                          </Stack>
+                        </Box>
+                      ))}
+                    </>
+                }
               </>
               : <Text>Ничего не найдено.</Text>
         }
@@ -841,7 +859,7 @@ function ProductsComponent(props) {
 
   const handleChange = async (productId, isExcluded) => {
     const userId = await getUserId();
-    axios.post(`${apiHost}${apiProductsPath.replace('{userId}', userId)}`, { productId:productId, isExcluded:isExcluded });
+    axios.post(`${apiHost}${apiProductsPath.replace('{userId}', userId)}`, { productId: productId, isExcluded: isExcluded });
     const updatedProducts = [...products];
     const updatedProduct = updatedProducts.find(s => s.id === productId);
     updatedProduct.isExcluded = isExcluded;
